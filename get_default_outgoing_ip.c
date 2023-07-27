@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -13,7 +14,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int client_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (client_socket < 0) {
-        // error_text = "Cannot create socket with errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "Cannot create socket with errno code %d  error: %s", errno, strerror(errno));
         return 1;
     }
 
@@ -33,7 +34,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int pton_result = inet_pton(AF_INET, remote_host, &serv_addr.sin_addr);
 
     if (pton_result <= 0) {
-        // error_text = "inet_pton failed for " + remote_host + " with following errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "inet_pton failed for %s with following errno code: %d error: %s", remote_host, errno, strerror(errno));
 
         close(client_socket);
         return 1;
@@ -45,7 +46,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int connect_result = connect(client_socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     if (connect_result != 0) {
-        //error_text = "Connect call failed with following errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "Connect call failed with following errno code: %d error: %s", errno, strerror(errno));
         close(client_socket);
         return 1;
     }
@@ -58,7 +59,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int getsockname_result = getsockname(client_socket, (struct sockaddr*) &peer_socket, &address_length);
 
     if (getsockname_result != 0) {
-        //error_text = "getsockname failed with errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "getsockname failed with errno code: %d error: %s", errno, strerror(errno));
 
         // Some error happened
         close(client_socket);
@@ -81,7 +82,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int client_socket = socket(AF_INET6, SOCK_DGRAM, 0);
 
     if (client_socket < 0) {
-        //error_text = "Cannot create socket with errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "Cannot create socket with errno code %d  error: %s", errno, strerror(errno));
         return 1;
     }
 
@@ -101,7 +102,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int pton_result = inet_pton(AF_INET6, remote_host, &serv_addr.sin6_addr);
 
     if (pton_result <= 0) {
-        //error_text = "inet_pton failed for " + remote_host + " errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "inet_pton failed for %s with following errno code: %d error: %s", remote_host, errno, strerror(errno));
 
         close(client_socket);
         return 1;
@@ -113,7 +114,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int connect_result = connect(client_socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     if (connect_result != 0) {
-        //error_text = "Connect call failed with errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "Connect call failed with following errno code: %d error: %s", errno, strerror(errno));
 
         close(client_socket);
         return 1;
@@ -127,7 +128,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int getsockname_result = getsockname(client_socket, (struct sockaddr*) &peer_socket, &address_length);
 
     if (getsockname_result != 0) {
-        //error_text = "getsockname failed with errno code: " + std::to_string(errno) + " error: " + strerror(errno);
+        fprintf(stderr, "getsockname failed with errno code: %d error: %s", errno, strerror(errno));
 
         // Some error happened
         close(client_socket);
