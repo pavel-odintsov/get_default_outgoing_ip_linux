@@ -152,9 +152,11 @@ int main() {
     if (get_ipv4_result == 0) {
         char ipv4_address_as_string[256];
 
-        inet_ntop(AF_INET, &ipv4_address, ipv4_address_as_string, 256);
-
-        printf("Successfully retrieved default outgoing IPv4 address: %s\n", ipv4_address_as_string);
+        if (inet_ntop(AF_INET, &ipv4_address, ipv4_address_as_string, 256) == NULL) {
+            printf("Successfully retrieved default outgoing IPv4 address but failed to print it");
+        } else {
+            printf("Successfully retrieved default outgoing IPv4 address: %s\n", ipv4_address_as_string);
+        }
     } else {
         fprintf(stderr, "Cannot retrieve outgoing IPv4 address\n");
     }
@@ -167,9 +169,11 @@ int main() {
     if (get_ipv6_result == 0) {
         char ipv6_address_as_string[256];
 
-        inet_ntop(AF_INET6, &ipv6_address, ipv6_address_as_string, 256);
-
-        printf("Successfully retrieved default outgoing IPv6 address: %s\n", ipv6_address_as_string);
+        if (inet_ntop(AF_INET6, &ipv6_address, ipv6_address_as_string, 256) == NULL) {
+            printf("Successfully retrieved default outgoing IPv6 address but failed to print it");
+        } else {
+            printf("Successfully retrieved default outgoing IPv6 address: %s\n", ipv6_address_as_string);
+        }
     } else {
         fprintf(stderr, "Cannot retrieve outgoing IPv6 address\n");
     }
