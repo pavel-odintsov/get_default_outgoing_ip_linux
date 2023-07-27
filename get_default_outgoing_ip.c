@@ -22,8 +22,9 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     // Do not worry. There are no connection expected to happen
     unsigned short remote_port_dns = 53;
 
-    // We will use Google
-    char* remote_host = "8.8.8.8";
+    // We use IP address from special block TEST-NET-3 which is reserved only for documentation use
+    // https://datatracker.ietf.org/doc/html/rfc5737
+    char* remote_host = "203.0.113.1";
 
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -90,8 +91,9 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     // Do not worry. There are no connection expected to happen
     unsigned short remote_port_dns = 53;
 
-    // We will use Google
-    char* remote_host = "2001:4860:4860::8888";
+    // We use IPv6 address reserved for documentation
+    // https://datatracker.ietf.org/doc/html/rfc3849
+    char* remote_host = "2001:db8::1";
 
     struct sockaddr_in6 serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
