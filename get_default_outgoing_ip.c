@@ -1,12 +1,13 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-
-#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <err.h>
+#include <errno.h>
 #include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 // Retrieves default outgoing IPv4 address using Linux sockets trick
 int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
@@ -14,7 +15,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int client_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (client_socket < 0) {
-        fprintf(stderr, "Cannot create socket with errno code %d  error: %s", errno, strerror(errno));
+        warn("cannot create IPv4 socket");
         return 1;
     }
 
@@ -35,8 +36,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int pton_result = inet_pton(AF_INET, remote_host, &serv_addr.sin_addr);
 
     if (pton_result <= 0) {
-        fprintf(stderr, "inet_pton failed for %s with following errno code: %d error: %s", remote_host, errno, strerror(errno));
-
+        warn("IPv4 inet_pton failed for %s", remote_host);
         close(client_socket);
         return 1;
     }
@@ -47,7 +47,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int connect_result = connect(client_socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     if (connect_result != 0) {
-        fprintf(stderr, "Connect call failed with following errno code: %d error: %s", errno, strerror(errno));
+        warn("IPv4 cannot connect");
         close(client_socket);
         return 1;
     }
@@ -60,8 +60,7 @@ int get_default_outgoing_ipv4_address(uint32_t* ipv4_address) {
     int getsockname_result = getsockname(client_socket, (struct sockaddr*) &peer_socket, &address_length);
 
     if (getsockname_result != 0) {
-        fprintf(stderr, "getsockname failed with errno code: %d error: %s", errno, strerror(errno));
-
+        warn("IPv4 getsockname failed");
         // Some error happened
         close(client_socket);
         return 1;
@@ -83,7 +82,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int client_socket = socket(AF_INET6, SOCK_DGRAM, 0);
 
     if (client_socket < 0) {
-        fprintf(stderr, "Cannot create socket with errno code %d  error: %s", errno, strerror(errno));
+        warn("cannot create IPv6 socket");
         return 1;
     }
 
@@ -104,7 +103,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int pton_result = inet_pton(AF_INET6, remote_host, &serv_addr.sin6_addr);
 
     if (pton_result <= 0) {
-        fprintf(stderr, "inet_pton failed for %s with following errno code: %d error: %s", remote_host, errno, strerror(errno));
+        warn("IPv6 inet_pton failed for %s", remote_host);
 
         close(client_socket);
         return 1;
@@ -116,8 +115,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int connect_result = connect(client_socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     if (connect_result != 0) {
-        fprintf(stderr, "Connect call failed with following errno code: %d error: %s", errno, strerror(errno));
-
+        warn("IPv6 connect failed");
         close(client_socket);
         return 1;
     }
@@ -130,7 +128,7 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     int getsockname_result = getsockname(client_socket, (struct sockaddr*) &peer_socket, &address_length);
 
     if (getsockname_result != 0) {
-        fprintf(stderr, "getsockname failed with errno code: %d error: %s", errno, strerror(errno));
+        warn("IPv6 getsockname failed");
 
         // Some error happened
         close(client_socket);
@@ -146,8 +144,9 @@ int get_default_outgoing_ipv6_address(struct in6_addr* ipv6_address) {
     return 0;
 }
 
-int main() {
-    uint32_t ipv4_address = 0;;
+int main(int argc, char **argv) {
+    uint32_t ipv4_address = 0;
+    int retval = EXIT_SUCCESS;
 
     int get_ipv4_result = get_default_outgoing_ipv4_address(&ipv4_address);
 
@@ -155,12 +154,14 @@ int main() {
         char ipv4_address_as_string[256];
 
         if (inet_ntop(AF_INET, &ipv4_address, ipv4_address_as_string, 256) == NULL) {
-            printf("Successfully retrieved default outgoing IPv4 address but failed to print it");
+            printf("Successfully retrieved default outgoing IPv4 address but failed to print it\n");
+            retval = EXIT_FAILURE;
         } else {
             printf("Successfully retrieved default outgoing IPv4 address: %s\n", ipv4_address_as_string);
         }
     } else {
-        fprintf(stderr, "Cannot retrieve outgoing IPv4 address\n");
+        warnx("cannot retrieve outgoing IPv4 address");
+        retval = EXIT_FAILURE;
     }
 
     struct in6_addr ipv6_address;
@@ -172,11 +173,14 @@ int main() {
         char ipv6_address_as_string[256];
 
         if (inet_ntop(AF_INET6, &ipv6_address, ipv6_address_as_string, 256) == NULL) {
-            printf("Successfully retrieved default outgoing IPv6 address but failed to print it");
+            printf("Successfully retrieved default outgoing IPv6 address but failed to print it\n");
+            retval = EXIT_FAILURE;
         } else {
             printf("Successfully retrieved default outgoing IPv6 address: %s\n", ipv6_address_as_string);
         }
     } else {
-        fprintf(stderr, "Cannot retrieve outgoing IPv6 address\n");
+        warnx("cannot retrieve outgoing IPv6 address");
+        retval = EXIT_FAILURE;
     }
+    return retval;
 }
